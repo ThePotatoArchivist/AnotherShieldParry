@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "archives.tater.shieldparry.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "EntityMixin",
+    "LivingEntityMixin",
+    "ProjectileEntityAccessor",
+    "ProjectileEntityMixin",
+    "ShulkerBulletEntityMixinAccessor",
+    "SmallFireballEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+	}
+}
