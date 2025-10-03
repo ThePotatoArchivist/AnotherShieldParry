@@ -78,19 +78,19 @@ public record ParriesAttackComponent(
 
     public static double getAimedProjectileSpeed(ProjectileEntity projectile) {
         return switch (projectile) {
-            case FireballEntity ignored -> 2.0;
+            case FireballEntity ignored -> 3.0;
             case DragonFireballEntity ignored -> 4.0;
             case AbstractWindChargeEntity ignored -> 1.5;
             default -> 1.0;
         };
     }
 
-    public static float DRAGON_FIREBALL_DAMAGE = 20;
+    public static float DRAGON_FIREBALL_DAMAGE = 40;
 
     public static ProjectileDeflection PARRY_PROJECTILE = (projectile, hitEntity, random) -> {
         var owner = projectile.getOwner();
-        if (projectile instanceof ExplosiveProjectileEntity && owner instanceof MobEntity) {
-            projectile.setVelocity(owner.getEyePos().subtract(projectile.getEntityPos()).normalize().multiply(getAimedProjectileSpeed(projectile)));
+        if (projectile instanceof ExplosiveProjectileEntity && owner instanceof MobEntity && hitEntity != null) {
+            projectile.setVelocity(hitEntity.getRotationVector().multiply(getAimedProjectileSpeed(projectile)));
         } else if (projectile instanceof ShulkerBulletEntity && owner instanceof ShulkerEntity) {
             projectile.setVelocity(Vec3d.ZERO);
             ((ShulkerBulletEntityMixinAccessor) projectile).setTarget(LazyEntityReference.of(owner));
