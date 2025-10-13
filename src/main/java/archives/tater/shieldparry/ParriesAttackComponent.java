@@ -20,6 +20,8 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Optional;
 
 public record ParriesAttackComponent(
@@ -35,20 +37,26 @@ public record ParriesAttackComponent(
         return entity.getItemUseTime() < parryTicks;
     }
 
-    public void onParry(LivingEntity entity, ServerWorld world, LivingEntity attacker) {
+    public void onParry(LivingEntity entity, ServerWorld world) { // called by projectiles
+        onParry(entity, world, false, true);
+    }
+
+    public void onParry(LivingEntity entity, @Nullable LivingEntity attacker, ServerWorld world) {
+        if (attacker == null || !attacker.isAlive()) {
+            onParry(entity, world, false, false);
+            return;
+        }
         attacker.takeKnockback(knockbackStrength, entity.getX() - attacker.getX(), entity.getZ() - attacker.getZ());
-        onParry(entity, world, attacker.getWeaponDisableBlockingForSeconds() > 0f);
+        onParry(entity, world, attacker.getWeaponDisableBlockingForSeconds() > 0f, true);
     }
 
-    public void onParry(LivingEntity entity, ServerWorld world) {
-        onParry(entity, world, false);
-    }
-
-    private void onParry(LivingEntity entity, ServerWorld world, boolean disable) {
+    private void onParry(LivingEntity entity, ServerWorld world, boolean disable, boolean swingHand) {
         playParrySound(world, entity);
         if (entity instanceof ServerPlayerEntity serverPlayer)
             serverPlayer.getItemCooldownManager().set(entity.getActiveItem(), disable ? disableCooldown : normalCooldown);
-        entity.clearActiveItem();
+        entity.stopUsingItem();
+        if (swingHand)
+            entity.swingHand(entity.getActiveHand(), true);
     }
 
     public void playParrySound(World world, LivingEntity from) {

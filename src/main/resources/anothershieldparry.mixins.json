@@ -4,9 +4,11 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "EntityMixin",
+    "HoglinMixin",
     "LivingEntityMixin",
     "ProjectileEntityAccessor",
     "ProjectileEntityMixin",
+    "RavagerEntityMixin",
     "ShulkerBulletEntityMixinAccessor",
     "SmallFireballEntityMixin"
   ],
