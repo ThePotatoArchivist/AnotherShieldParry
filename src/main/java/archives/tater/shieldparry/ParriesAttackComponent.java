@@ -5,7 +5,6 @@ import archives.tater.shieldparry.mixin.ShulkerBulletEntityMixinAccessor;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
-import net.minecraft.entity.projectile.*;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -67,7 +66,7 @@ public record ParriesAttackComponent(
 
     public void playParrySound(Level world, LivingEntity from) {
         parrySound.ifPresent(
-                sound -> world.playSound(null, from.getX(), from.getY(), from.getZ(), sound, from.getSoundSource(), 1.0F, 0.8F + world.random.nextFloat() * 0.4F)
+                sound -> world.playSound(null, from.getX(), from.getY(), from.getZ(), sound, from.getSoundSource(), 1.0F, 0.8F + world.getRandom().nextFloat() * 0.4F)
         );
     }
 
