@@ -2,18 +2,16 @@ package archives.tater.shieldparry;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
-
-import net.minecraft.component.ComponentType;
-import net.minecraft.component.type.BlocksAttacksComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BlocksAttacks;
+import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +23,7 @@ public class AnotherShieldParry implements ModInitializer {
 	public static final String MOD_ID = "anothershieldparry";
 
     public static Identifier id(String path) {
-        return Identifier.of(MOD_ID, path);
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
 	// This logger is used to write text to the console and the log file.
@@ -33,26 +31,26 @@ public class AnotherShieldParry implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final ComponentType<ParriesAttackComponent> PARRIES_ATTACK = Registry.register(
-            Registries.DATA_COMPONENT_TYPE,
+    public static final DataComponentType<ParriesAttackComponent> PARRIES_ATTACK = Registry.register(
+            BuiltInRegistries.DATA_COMPONENT_TYPE,
             id("parries_attack"),
-            ComponentType.<ParriesAttackComponent>builder()
-                    .codec(ParriesAttackComponent.CODEC)
-                    .packetCodec(ParriesAttackComponent.PACKET_CODEC)
-                    .cache()
+            DataComponentType.<ParriesAttackComponent>builder()
+                    .persistent(ParriesAttackComponent.CODEC)
+                    .networkSynchronized(ParriesAttackComponent.PACKET_CODEC)
+                    .cacheEncoding()
                     .build()
     );
 
-    public static boolean isBlockedByShield(LivingEntity entity, DamageSource source, BlocksAttacksComponent blocksAttackComponent) {
-        Vec3d vec3d = source.getPosition();
+    public static boolean isBlockedByShield(LivingEntity entity, DamageSource source, BlocksAttacks blocksAttackComponent) {
+        Vec3 vec3d = source.getSourcePosition();
         var angle = vec3d != null
                 ? acos(vec3d
-                        .subtract(entity.getEntityPos())
+                        .subtract(entity.position())
                         .multiply(1, 0, 1)
                         .normalize()
-                        .dotProduct(entity.getRotationVector(0.0F, entity.getHeadYaw())))
+                        .dot(entity.calculateViewVector(0.0F, entity.getYHeadRot())))
                 : Math.PI;
-        return blocksAttackComponent.getDamageReductionAmount(source, 1, angle) > 0;
+        return blocksAttackComponent.resolveBlockedDamage(source, 1, angle) > 0;
     }
 
 	@Override
@@ -63,13 +61,13 @@ public class AnotherShieldParry implements ModInitializer {
 
         DefaultItemComponentEvents.MODIFY.register(context -> {
             context.modify(Items.SHIELD, builder -> {
-                builder.add(PARRIES_ATTACK, new ParriesAttackComponent(
+                builder.set(PARRIES_ATTACK, new ParriesAttackComponent(
                         6,
                         0.75f,
                         1.0,
                         10,
                         40,
-                        Optional.of(Registries.SOUND_EVENT.getEntry(SoundEvents.ITEM_MACE_SMASH_AIR)) // TODO custom sound event
+                        Optional.of(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.MACE_SMASH_AIR)) // TODO custom sound event
                 ));
             });
         });
